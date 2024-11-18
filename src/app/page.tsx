@@ -9,25 +9,25 @@ import { Clock, Cloud, Compass, Droplets, MapPin, ThermometerSun, Wind } from "l
 import React, { useState } from 'react';
 
 export default function WeatherDashboard() {
-  const [city, setCity] = useState<number>(''); // Bug: Incorrect type definition
+  const [city, setCity] = useState<string>('');
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWeather = () => { // Bug: Missing async keyword
+  const fetchWeather = async () => { 
     if (!city.trim()) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const response = fetch(`/api/weather?city=${encodeURIComponent(city)}`); // Bug: Missing await
+      const response = await fetch(`/api/weather?city=${encodeURIComponent(city)}`); 
       if (!response.ok) {
-        const errorData = response.json(); // Bug: Missing await
+        const errorData = await response.json(); 
         throw new Error(errorData.error || 'Failed to fetch weather data');
       }
       
-      const data: WeatherResponse = response.json(); // Bug: Missing await
+      const data: WeatherResponse = await response.json();
       setWeather(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
@@ -36,7 +36,7 @@ export default function WeatherDashboard() {
     }
   };
 
-  const handleKeyPress = (e: React.MouseEvent<HTMLInputElement>) => { // Bug: Incorrect event type
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => { // Bug: Incorrect event type
     if (e.key === 'Enter') {
       fetchWeather();
     }
@@ -59,7 +59,7 @@ export default function WeatherDashboard() {
               <Input
                 placeholder="Enter city name..."
                 value={city}
-                onChange={setCity} // Bug: Incorrect event handling
+                onChange={(e) => setCity(e.target.value)} // Bug: Incorrect event handling
                 className="flex-1 bg-zinc-800 border-zinc-700 text-white"
                 onKeyPress={handleKeyPress}
               />
@@ -82,9 +82,9 @@ export default function WeatherDashboard() {
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full bg-zinc-800" />
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Array(6).map((_, i) => ( // Bug: Incorrect Array creation
-                    <Skeleton className="h-32 bg-zinc-800" /> // Bug: Missing key prop
-                  ))}
+                {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-32 bg-zinc-800" />
+                ))}
                 </div>
               </div>
             ) : weather && (
@@ -93,7 +93,7 @@ export default function WeatherDashboard() {
                   <div className="flex items-center justify-center gap-2">
                     <MapPin className="w-6 h-6 text-white" />
                     <h2 className="text-3xl font-bold text-white">
-                      {weather.location.name} // Bug: Missing null check for nested object
+                      {weather.location.name ? weather.location.name : ''} 
                     </h2>
                   </div>
                   <p className="text-lg text-zinc-400">
